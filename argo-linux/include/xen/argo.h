@@ -43,7 +43,8 @@
 /* Fixed-width type for "argo port" number. Nothing to do with evtchns. */
 typedef uint32_t xen_argo_port_t;
 
-#define XEN_ARGO_PORT_ANY 0xffffffffU
+#define XEN_ARGO_PORT_NONE 0
+#define XEN_ARGO_PORT_ANY  0xffffffffU
 
 /* gfn type: 64-bit fixed-width on all architectures */
 typedef uint64_t xen_argo_gfn_t;
