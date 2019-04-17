@@ -3078,9 +3078,8 @@ static int
 allocate_fd_with_private (void *private)
 {
     int fd;
+    const char * name = "";
     struct file *f;
-    struct qstr name = { .name = "" };
-    struct path path;
     struct inode *ind;
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(3,7,0))
@@ -3091,12 +3090,6 @@ allocate_fd_with_private (void *private)
     if ( fd < 0 )
         return fd;
 
-    path.dentry = d_alloc_pseudo(argo_mnt->mnt_sb, &name);
-    if ( unlikely(!path.dentry) )
-    {
-        put_unused_fd(fd);
-        return -ENOMEM;
-    }
     ind = new_inode(argo_mnt->mnt_sb);
     ind->i_ino = get_next_ino();
     ind->i_fop = argo_mnt->mnt_root->d_inode->i_fop;
@@ -3104,12 +3097,9 @@ allocate_fd_with_private (void *private)
     ind->i_mode = argo_mnt->mnt_root->d_inode->i_mode;
     ind->i_uid = current_fsuid();
     ind->i_gid = current_fsgid();
-    d_instantiate(path.dentry, ind);
- 
-    path.mnt = mntget(argo_mnt);
 
     DEBUG_APPLE;
-    f = alloc_file(&path, FMODE_READ | FMODE_WRITE, &argo_fops_stream);
+    f = alloc_file_pseudo(ind, argo_mnt, name, O_RDWR, &argo_fops_stream);
     if ( !f )
     {
       //FIXME putback fd?
@@ -3117,8 +3107,6 @@ allocate_fd_with_private (void *private)
     }
 
     f->private_data = private;
-    f->f_flags = O_RDWR;
- 
     fd_install (fd, f);
 
     return fd;
