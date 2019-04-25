@@ -959,7 +959,7 @@ new_ring(struct argo_private *sponsor, struct argo_ring_id *pid)
 
     ret = allocate_ring(r, sponsor->desired_ring_size);
 
-    printk(KERN_ERR "new_ring: allocate_ring ret: %d\n", ret);
+    printk(KERN_ERR "MOD new_ring: allocate_ring ret: %d\n", ret);
 
     DEBUG_APPLE;
     if ( ret )
@@ -970,9 +970,13 @@ new_ring(struct argo_private *sponsor, struct argo_ring_id *pid)
     }
     DEBUG_APPLE;
 
+    printk(KERN_ERR "Here1");
+
     INIT_LIST_HEAD(&r->privates);
     argo_spin_lock_init(&r->lock);
     atomic_set(&r->refcnt, 1);
+
+    printk(KERN_ERR "Here2");
 
     DEBUG_APPLE;
     do
