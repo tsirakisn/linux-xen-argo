@@ -970,13 +970,8 @@ new_ring(struct argo_private *sponsor, struct argo_ring_id *pid)
     }
     DEBUG_APPLE;
 
-    // There is a function in this block that is
-    // not implemented. My guess is spin_lock
-    printk(KERN_ERR "Now here1");
     INIT_LIST_HEAD(&r->privates);
-    printk(KERN_ERR "Now here2");
-    argo_spin_lock_init(&r->lock);
-    printk(KERN_ERR "Now here3");
+    spin_lock_init(&r->lock); // error: not implemented?
     atomic_set(&r->refcnt, 1);
 
     DEBUG_APPLE;
@@ -1256,7 +1251,7 @@ xmit_queue_inline(struct argo_ring_id *from, xen_argo_addr_t *to,
     xen_argo_addr_t addr;
 
     DEBUG_APPLE;
-    argo_spin_lock_irqsave (&pending_xmit_lock, flags);
+    spin_lock_irqsave (&pending_xmit_lock, flags);
     DEBUG_APPLE;
 
     iov.iov_hnd = buf;
@@ -1333,7 +1328,7 @@ copy_into_pending_recv(struct ring *r, int len, struct argo_private *p)
     /* Too much queued? Let the ring take the strain */
     if ( atomic_read(&p->pending_recv_count) > MAX_PENDING_RECVS )
     {
-        argo_spin_lock(&p->pending_recv_lock);
+        spin_lock(&p->pending_recv_lock);
         p->full = 1;
         argo_spin_unlock(&p->pending_recv_lock);
 
@@ -1368,7 +1363,7 @@ copy_into_pending_recv(struct ring *r, int len, struct argo_private *p)
     DEBUG_APPLE;
 #endif
 
-    argo_spin_lock(&p->pending_recv_lock);
+    spin_lock(&p->pending_recv_lock);
     list_add_tail(&pending->node, &p->pending_recv_list);
     atomic_inc(&p->pending_recv_count);
     p->full = 0;
@@ -1434,7 +1429,7 @@ argo_notify(void)
     int i = 0;
 
     DEBUG_APPLE;
-    argo_spin_lock_irqsave(&pending_xmit_lock, flags);
+    spin_lock_irqsave(&pending_xmit_lock, flags);
     DEBUG_APPLE;
     nent = atomic_read(&pending_xmit_count);
     DEBUG_APPLE;
@@ -1599,7 +1594,7 @@ connector_state_machine(struct argo_private *p, struct argo_stream_header *sh)
             {
                 p->state = ARGO_STATE_CONNECTED;
 
-                argo_spin_lock(&p->pending_recv_lock);
+                spin_lock(&p->pending_recv_lock);
                 p->pending_error = 0;
                 argo_spin_unlock(&p->pending_recv_lock);
 
@@ -1626,7 +1621,7 @@ connector_state_machine(struct argo_private *p, struct argo_stream_header *sh)
         {
             case ARGO_STATE_CONNECTING:
             {
-                argo_spin_lock(&p->pending_recv_lock);
+                spin_lock(&p->pending_recv_lock);
                 p->pending_error = -ECONNREFUSED;
                 argo_spin_unlock(&p->pending_recv_lock);
             }
@@ -1827,7 +1822,7 @@ listener_interrupt(struct ring *r)
 
         if ( r->sponsor )
         {
-            argo_spin_lock(&r->sponsor->pending_recv_lock);
+            spin_lock(&r->sponsor->pending_recv_lock);
             list_for_each_entry_safe(pending, t, &r->sponsor->pending_recv_list,
                                      node)
             {
@@ -1908,7 +1903,7 @@ argo_interrupt_rx(void)
                 break;
 
             case ARGO_RTYPE_CONNECTOR:
-                argo_spin_lock(&r->lock);
+                spin_lock(&r->lock);
 
                 while ( (r->ring->tx_ptr != r->ring->rx_ptr)
                         && !connector_interrupt (r))
@@ -1918,7 +1913,7 @@ argo_interrupt_rx(void)
                 break;
 
             case ARGO_RTYPE_LISTENER:
-                argo_spin_lock(&r->lock);
+                spin_lock(&r->lock);
 
                 while ((r->ring->tx_ptr != r->ring->rx_ptr)
                        && !listener_interrupt (r))
@@ -1942,7 +1937,7 @@ argo_interrupt(int irq, void *dev_id)
     DEBUG_ORANGE ("argo_interrupt");
 #endif
 
-    argo_spin_lock_irqsave(&interrupt_lock, flags);
+    spin_lock_irqsave(&interrupt_lock, flags);
     argo_interrupt_rx();
 
 
@@ -1959,7 +1954,7 @@ argo_fake_irq(void)
 {
     unsigned long flags;
 
-    argo_spin_lock_irqsave(&interrupt_lock, flags);
+    spin_lock_irqsave(&interrupt_lock, flags);
 
     argo_interrupt_rx();
     argo_null_notify();
@@ -2060,7 +2055,7 @@ argo_try_send_sponsor(struct argo_private *p, xen_argo_addr_t *dest,
     ret = H_argo_sendv(&addr, dest, &iov, 1, protocol);
     DEBUG_APPLE;
 
-    argo_spin_lock_irqsave(&pending_xmit_lock, flags);
+    spin_lock_irqsave(&pending_xmit_lock, flags);
     if ( ret == -EAGAIN )
     {
         DEBUG_APPLE;
@@ -2108,7 +2103,7 @@ argo_try_sendv_sponsor(struct argo_private *p,
     printk (KERN_ERR "sendv returned %d\n", ret);
 #endif
 
-    argo_spin_lock_irqsave(&pending_xmit_lock, flags);
+    spin_lock_irqsave(&pending_xmit_lock, flags);
     if ( ret == -EAGAIN )
     {
         DEBUG_APPLE;
@@ -2152,7 +2147,7 @@ argo_try_sendv_privates(struct argo_private *p, xen_argo_addr_t * dest,
 
     ret = H_argo_sendv(&addr, dest, iovs, niov, protocol);
 
-    argo_spin_lock_irqsave(&pending_xmit_lock, flags);
+    spin_lock_irqsave(&pending_xmit_lock, flags);
     if ( ret == -EAGAIN )
     {
         /* Add pending xmit */
@@ -2496,7 +2491,7 @@ argo_recvfrom_dgram(struct argo_private *p, void *buf, size_t len,
          * For Dgrams, we know the interrupt handler will never use the ring,
          * so leave irqs on
          */
-        argo_spin_lock(&p->r->lock); 
+        spin_lock(&p->r->lock); 
 
         if ( p->r->ring->rx_ptr == p->r->ring->tx_ptr )
         {
@@ -2616,7 +2611,7 @@ argo_recv_stream(struct argo_private *p, void *_buf, int len, int recv_flags,
     {
 
         DEBUG_APPLE;
-        argo_spin_lock_irqsave(&p->pending_recv_lock, flags);
+        spin_lock_irqsave(&p->pending_recv_lock, flags);
         DEBUG_APPLE;
         while ( !list_empty(&p->pending_recv_list) && len )
         {
@@ -2656,7 +2651,7 @@ argo_recv_stream(struct argo_private *p, void *_buf, int len, int recv_flags,
                     pending->data_ptr, pending->data);
                 /* FIXME: error exit action here? */
 
-            argo_spin_lock_irqsave(&p->pending_recv_lock, flags);
+            spin_lock_irqsave(&p->pending_recv_lock, flags);
 
             if ( !eat )
             {
@@ -3223,7 +3218,7 @@ argo_accept(struct argo_private *p, struct xen_argo_addr *peer, int nonblock)
 
         init_waitqueue_head(&a->readq);
         init_waitqueue_head(&a->writeq);
-        argo_spin_lock_init(&a->pending_recv_lock);
+        spin_lock_init(&a->pending_recv_lock);
         INIT_LIST_HEAD(&a->pending_recv_list);
         atomic_set(&a->pending_recv_count, 0);
         DEBUG_APPLE;
@@ -3481,7 +3476,7 @@ argo_open_dgram(struct inode *inode, struct file *f)
     init_waitqueue_head(&p->readq);
     init_waitqueue_head(&p->writeq);
 
-    argo_spin_lock_init(&p->pending_recv_lock);
+    spin_lock_init(&p->pending_recv_lock);
     INIT_LIST_HEAD(&p->pending_recv_list);
     atomic_set(&p->pending_recv_count, 0);
 
@@ -3515,7 +3510,7 @@ argo_open_stream(struct inode *inode, struct file *f)
     init_waitqueue_head(&p->readq);
     init_waitqueue_head(&p->writeq);
 
-    argo_spin_lock_init(&p->pending_recv_lock);
+    spin_lock_init(&p->pending_recv_lock);
     INIT_LIST_HEAD(&p->pending_recv_list);
     atomic_set(&p->pending_recv_count, 0);
 
@@ -3561,7 +3556,7 @@ argo_release(struct inode *inode, struct file *f)
          */
             case ARGO_STATE_LISTENING:
             {
-                argo_spin_lock (&p->r->sponsor->pending_recv_lock);
+                spin_lock (&p->r->sponsor->pending_recv_lock);
 
                 list_for_each_entry_safe(pending, t,
                                          &p->r->sponsor->pending_recv_list,
@@ -3783,7 +3778,7 @@ argo_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
                 return -EFAULT;
             DEBUG_APPLE;
 
-            argo_spin_lock_irqsave (&p->pending_recv_lock, flags);
+            spin_lock_irqsave (&p->pending_recv_lock, flags);
             if ( put_user (p->pending_error, (int __user *)arg) )
                 rc = -EFAULT;
             else
@@ -4231,8 +4226,8 @@ argo_probe(struct platform_device *dev)
     INIT_LIST_HEAD(&ring_list);
     rwlock_init(&list_lock);
     INIT_LIST_HEAD(&pending_xmit_list);
-    argo_spin_lock_init(&pending_xmit_lock);
-    argo_spin_lock_init(&interrupt_lock);
+    spin_lock_init(&pending_xmit_lock);
+    spin_lock_init(&interrupt_lock);
     atomic_set(&pending_xmit_count, 0);
 
     if ( bind_signal() )
