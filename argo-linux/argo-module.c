@@ -970,13 +970,14 @@ new_ring(struct argo_private *sponsor, struct argo_ring_id *pid)
     }
     DEBUG_APPLE;
 
-    printk(KERN_ERR "Here1");
-
+    // There is a function in this block that is
+    // not implemented. My guess is spin_lock
+    printk(KERN_ERR "Now here1");
     INIT_LIST_HEAD(&r->privates);
+    printk(KERN_ERR "Now here2");
     argo_spin_lock_init(&r->lock);
+    printk(KERN_ERR "Now here3");
     atomic_set(&r->refcnt, 1);
-
-    printk(KERN_ERR "Here2");
 
     DEBUG_APPLE;
     do
