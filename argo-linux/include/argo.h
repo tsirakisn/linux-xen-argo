@@ -43,16 +43,29 @@
 
 #if defined(CONFIG_X86_64) || defined(CONFIG_X86_32)
 
+#ifndef HYPERCALL_PHYSICAL_ADDRESS
+#define HYPERCALL_PHYSICAL_ADDRESS    0x00080000
+#endif
+
+#ifndef hcall_addr
+#define hcall_addr(name)                                                \
+    ((unsigned long)HYPERCALL_PHYSICAL_ADDRESS + __HYPERVISOR_##name * 32)
+#endif
+
 #ifndef _hypercall5
-#define _hypercall5(type, name, a1, a2, a3, a4, a5)                    \
-({                                                                     \
-       __HYPERCALL_DECLS;                                              \
-       __HYPERCALL_5ARG(a1, a2, a3, a4, a5);                           \
-       asm volatile (__HYPERCALL                                       \
-                     : __HYPERCALL_5PARAM                              \
-                     : __HYPERCALL_ENTRY(name)                         \
-                     : __HYPERCALL_CLOBBER5);                          \
-       (type)__res;                                                    \
+#define _hypercall5(type, name, a1, a2, a3, a4, a5)     \
+({                                                      \
+    long __res, __ign1, __ign2, __ign3, __ign4, __ign5; \
+    asm volatile (                                      \
+        "call *%%eax"                                   \
+        : "=a" (__res), "=b" (__ign1), "=c" (__ign2),   \
+          "=d" (__ign3), "=S" (__ign4), "=D" (__ign5)   \
+        : "0" (hcall_addr(name)),                       \
+          "1" ((long)(a1)), "2" ((long)(a2)),           \
+          "3" ((long)(a3)), "4" ((long)(a4)),           \
+          "5" ((long)(a5))                              \
+        : "memory" );                                   \
+    (type)__res;                                        \
 })
 #endif
 
@@ -62,12 +75,10 @@ HYPERVISOR_argo_op(int cmd, void *arg1, void *arg2, uint32_t arg3,
 {
     int ret;
 
-    printk(KERN_ERR "Hypercall reached");
     stac();
     ret = _hypercall5(int, argo_op, cmd, arg1, arg2, arg3, arg4);
     clac();
 
-    printk(KERN_ERR "Hypercall finished with ret %d", ret);
     return ret;
 }
 #else
