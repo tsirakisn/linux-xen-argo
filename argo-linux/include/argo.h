@@ -62,10 +62,12 @@ HYPERVISOR_argo_op(int cmd, void *arg1, void *arg2, uint32_t arg3,
 {
     int ret;
 
+    printk(KERN_ERR "Hypercall reached");
     stac();
     ret = _hypercall5(int, argo_op, cmd, arg1, arg2, arg3, arg4);
     clac();
 
+    printk(KERN_ERR "Hypercall finished with ret %d", ret);
     return ret;
 }
 #else
