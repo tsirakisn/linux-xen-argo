@@ -98,8 +98,8 @@
 
 #define DEBUG_ORANGE(a) do { printk(KERN_ERR  "%s %s %s:%d cpu%d pid %d\n",a,__PRETTY_FUNCTION__,"argo.c",__LINE__,raw_smp_processor_id(),current->pid); } while (1==0)
 
-/*#define ARGO_DEBUG 1*/
-#undef ARGO_DEBUG
+#define ARGO_DEBUG 1
+//#undef ARGO_DEBUG
 #undef ARGO_DEBUG_LOCKS
 
 #ifdef ARGO_DEBUG
