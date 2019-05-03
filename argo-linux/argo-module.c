@@ -106,8 +106,8 @@
 
 #define DEBUG_BANANA DEBUG_ORANGE("BANANA")
 #define DEBUG_APPLE DEBUG_ORANGE("")
-#define lock2(a,b) do { printk(KERN_ERR  "%s(%s) %s %s:%d cpu%d\n",#a,#b, __PRETTY_FUNCTION__,"argo.c",__LINE__,raw_smp_processor_id()); a(b); } while (1==0)
-#define lock3(a,b,c) do { printk(KERN_ERR  "%s(%s,%s) %s %s:%d cpu%d\n",#a,#b,#c, __PRETTY_FUNCTION__,"argo.c",__LINE__,raw_smp_processor_id()); a(b,c); } while (1==0)
+#define lock2(a,b) a(b)
+#define lock3(a,b,c) a(b,c)
 #define DEBUG_RING(a) summary_ring(a)
 #define DEBUG_HEXDUMP(a,b) argo_hexdump(a,b)
 
@@ -2772,7 +2772,7 @@ argo_send_stream(struct argo_private *p, const void *_buf, int len,
     {
         struct argo_stream_header sh;
         xen_argo_iov_t iovs[2];
-        DEBUG_APPLE;
+        //DEBUG_APPLE;
 
         to_send = len > write_lump ? write_lump 
                                    : len;
@@ -2791,34 +2791,34 @@ argo_send_stream(struct argo_private *p, const void *_buf, int len,
         iovs[0].pad = 0;
         iovs[1].pad = 0;
 
-        DEBUG_APPLE;
-        DEBUG_HEXDUMP((void *) buf, to_send);
-        DEBUG_APPLE;
+        //DEBUG_APPLE;
+        //DEBUG_HEXDUMP((void *) buf, to_send);
+        //DEBUG_APPLE;
 
         if ( p->state == ARGO_STATE_CONNECTED )
         {
-            DEBUG_APPLE;
+            //DEBUG_APPLE;
             /* sponsor */
             ret = argo_stream_sendvto_from_sponsor(
                                   p, iovs, 2,
                                   to_send + sizeof(struct argo_stream_header),
                                   nonblock, &p->peer, ARGO_PROTO_STREAM);
-            DEBUG_APPLE;
+            //DEBUG_APPLE;
         }
         else
         {
-            DEBUG_APPLE;
+            //DEBUG_APPLE;
             /* private */
             ret = argo_stream_sendvto_from_private(
                                    p, iovs, 2,
                                    to_send + sizeof(struct argo_stream_header),
                                    nonblock, &p->peer, ARGO_PROTO_STREAM);
-            DEBUG_APPLE;
+            //DEBUG_APPLE;
         }
 
         if ( ret < 0 )
         {
-            DEBUG_APPLE;
+            //DEBUG_APPLE;
             return count ? count : ret;
         }
 
@@ -2829,7 +2829,7 @@ argo_send_stream(struct argo_private *p, const void *_buf, int len,
         if ( nonblock )
             return count;
 
-        DEBUG_APPLE;
+        //DEBUG_APPLE;
     }
 
     DEBUG_APPLE;
