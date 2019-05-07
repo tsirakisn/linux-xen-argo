@@ -2698,12 +2698,13 @@ argo_recv_stream(struct argo_private *p, void *_buf, int len, int recv_flags,
             return count ? count : -EPIPE;
         }
 
-        DEBUG_APPLE;
+        DEBUG_BANANA;
 
         /* Bizzare sockets TCP behavior */
         if ( count && !(recv_flags & MSG_WAITALL) )
             return count;
 
+        DEBUG_APPLE;
 
         if ( nonblock )
             return count ? count : -EAGAIN;
@@ -3661,6 +3662,8 @@ argo_read(struct file *f, char __user * buf, size_t count, loff_t * ppos)
 {
     struct argo_private *p = f->private_data;
     int nonblock = f->f_flags & O_NONBLOCK;
+
+    printk(KERN_ERR "entering argo_read...");
 
     return argo_recvfrom(p, (void *) buf, count, 0, NULL, nonblock);
 }
