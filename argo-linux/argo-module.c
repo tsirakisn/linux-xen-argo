@@ -2182,6 +2182,7 @@ argo_sendto_from_sponsor(struct argo_private *p,
                 break;
             case ARGO_STATE_DISCONNECTED:
                 ret = -EPIPE;
+                printk(KERN_ERR "EPIPE1\n");
                 break;
             case ARGO_STATE_BOUND:
             case ARGO_STATE_CONNECTED:
@@ -2258,6 +2259,7 @@ argo_stream_sendvto_from_sponsor(struct argo_private *p,
                 break;
             case ARGO_STATE_DISCONNECTED:
                 ret = -EPIPE;
+                printk(KERN_ERR "EPIPE2\n");
                 break;
             case ARGO_STATE_BOUND:
             case ARGO_STATE_CONNECTED:
@@ -2325,6 +2327,7 @@ argo_stream_sendvto_from_private (struct argo_private *p,
         {
             case ARGO_STATE_DISCONNECTED:
                 ret = -EPIPE;
+                printk(KERN_ERR "EPIPE3\n");
                 break;
             case ARGO_STATE_ACCEPTED:
                 break;
@@ -2590,6 +2593,7 @@ argo_recv_stream(struct argo_private *p, void *_buf, int len, int recv_flags,
         case ARGO_STATE_DISCONNECTED:
         {
             argo_read_unlock(&list_lock);
+            printk(KERN_ERR "EPIPE4\n");
             return -EPIPE;
         }
         case ARGO_STATE_CONNECTING:
@@ -2663,11 +2667,11 @@ argo_recv_stream(struct argo_private *p, void *_buf, int len, int recv_flags,
                 DEBUG_APPLE;
                 list_del (&pending->node);
 
-#ifdef ARGO_DEBUG
+//#ifdef ARGO_DEBUG
                 printk(KERN_ERR "OP p=%p k=%d s=%d c=%d\n", pending,
                        pending->data_len, p->state,
                        atomic_read (&p->pending_recv_count));
-#endif
+//#endif
                 argo_kfree (pending);
                 atomic_dec(&p->pending_recv_count);
 
@@ -2695,7 +2699,13 @@ argo_recv_stream(struct argo_private *p, void *_buf, int len, int recv_flags,
         if ( p->state == ARGO_STATE_DISCONNECTED )
         {
             DEBUG_APPLE;
-            return count ? count : -EPIPE;
+            if (count) {
+                return count;
+            } else {
+                /* sshargo fails here */
+                printk(KERN_ERR "EPIPE5\n");
+                return -EPIPE;
+            }
         }
 
         DEBUG_BANANA;
@@ -2748,6 +2758,7 @@ argo_send_stream(struct argo_private *p, const void *_buf, int len,
         case ARGO_STATE_DISCONNECTED:
         {
             DEBUG_APPLE;
+            printk(KERN_ERR "EPIPE6\n");
             return -EPIPE;
         }
         case ARGO_STATE_CONNECTING:
@@ -3370,6 +3381,7 @@ argo_sendto(struct argo_private * p, const void *buf, size_t len, int flags,
                 case ARGO_STATE_DISCONNECTED:
                     DEBUG_BANANA;
                     rc = -EPIPE;
+                    printk(KERN_ERR "EPIPE7\n");
                     break;
                 default:
                     DEBUG_BANANA;
