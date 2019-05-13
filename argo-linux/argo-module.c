@@ -3408,11 +3408,16 @@ argo_recvfrom(struct argo_private * p, void *buf, size_t len, int flags,
 {
     int peek = 0;
     ssize_t rc = 0;
+    int addr_state;
 
-#ifdef ARGO_DEBUG
-    printk(KERN_ERR "argo_recvfrom buff:%p len:%d nonblock:%d\n",
-           buf, len, nonblock);
-#endif
+    if (addr) {
+        addr_state = 1;
+    } else {
+        addr_state = 0;
+    }
+
+    printk(KERN_ERR "argo_recvfrom buff:%p len:%d flags:%d addr_state:%d nonblock:%d\n",
+           buf, len, flags, addr_state, nonblock);
  
     if ( !access_ok (VERIFY_WRITE, buf, len) )
         return -EFAULT;
@@ -3665,6 +3670,8 @@ argo_write(struct file *f,
 {
     struct argo_private *p = f->private_data;
     int nonblock = f->f_flags & O_NONBLOCK;
+
+    printk(KERN_ERR "entering argo_write...");
 
     return argo_sendto(p, buf, count, 0, NULL, nonblock);
 }
