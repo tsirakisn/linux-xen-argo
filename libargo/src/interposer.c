@@ -316,15 +316,15 @@ INTERPOSE (accept, int, int sockfd, struct sockaddr * addr,
 }
 
 
-INTERPOSE (write, ssize_t, int sockfd, const void *buf, size_t len)
-{
-  CHECK_INTERPOSE (write);
-
-  if (!is_our_fd (sockfd))
-    return orig_write (sockfd, buf, len);
-
-  return argo_send (sockfd, buf, len, 0);
-}
+//INTERPOSE (write, ssize_t, int sockfd, const void *buf, size_t len)
+//{
+//  CHECK_INTERPOSE (write);
+//
+//  if (!is_our_fd (sockfd))
+//    return orig_write (sockfd, buf, len);
+//
+//  return argo_send (sockfd, buf, len, 0);
+//}
 
 
 INTERPOSE (send, ssize_t, int sockfd, const void *buf, size_t len, int flags)
@@ -661,7 +661,7 @@ init (void)
   FIND (connect);
   FIND (accept);
   FIND (listen);
-  FIND (write);
+  //FIND (write);
   FIND (send);
   FIND (sendmsg);
   FIND (sendto);
