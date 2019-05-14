@@ -379,15 +379,15 @@ INTERPOSE (sendto, ssize_t, int sockfd, const void *buf, size_t len,
 }
 
 
-INTERPOSE (read, ssize_t, int sockfd, void *buf, size_t len)
-{
-    CHECK_INTERPOSE (read);
-
-    if (!is_our_fd (sockfd))
-        return orig_read (sockfd, buf, len);
-
-    return argo_recv (sockfd, buf, len, 0);
-}
+//INTERPOSE (read, ssize_t, int sockfd, void *buf, size_t len)
+//{
+//    CHECK_INTERPOSE (read);
+//
+//    if (!is_our_fd (sockfd))
+//        return orig_read (sockfd, buf, len);
+//
+//    return argo_recv (sockfd, buf, len, 0);
+//}
 
 
 INTERPOSE (recv, ssize_t, int sockfd, void *buf, size_t len, int flags)
@@ -665,7 +665,7 @@ init (void)
   FIND (send);
   FIND (sendmsg);
   FIND (sendto);
-  FIND (read);
+  //FIND (read);
   FIND (recv);
   FIND (recvmsg);
   FIND (recvfrom);
