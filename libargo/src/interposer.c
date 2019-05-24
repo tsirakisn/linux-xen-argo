@@ -191,6 +191,8 @@ INTERPOSE (socket, int, int domain, int type, int protocol)
       ((domain != PF_INET) || (!getenv ("INET_IS_ARGO"))) && !force_xen)
     return orig_socket (domain, type, protocol);
 
+  DEBUG_PRINTF("ARGO SOCKET\n");
+
   ret = argo_socket (type);
   if (ret < 0)
     return ret;
@@ -251,6 +253,8 @@ INTERPOSE (connect, int, int sockfd, const struct sockaddr * addr,
   if (!is_our_fd (sockfd))
     return orig_connect (sockfd, addr, addrlen);
 
+  DEBUG_PRINTF("ARGO CONNECT\n");
+
   if (argo_map_sa_to_argoa (&peer, addr, addrlen))
     return -EINVAL;
 
@@ -299,6 +303,8 @@ INTERPOSE (accept, int, int sockfd, struct sockaddr * addr,
   if (!is_our_fd (sockfd))
     return orig_accept (sockfd, addr, addrlen);
 
+  DEBUG_PRINTF("ARGO ACCEPT\n");
+
   ret = argo_accept (sockfd, &peer);
 
   register_fd (ret);
@@ -334,6 +340,7 @@ INTERPOSE (send, ssize_t, int sockfd, const void *buf, size_t len, int flags)
   if (!is_our_fd (sockfd))
     return orig_send (sockfd, buf, len, flags);
 
+  DEBUG_PRINTF("ARGO SEND\n");
 
   return argo_send (sockfd, buf, len, flags);
 }
