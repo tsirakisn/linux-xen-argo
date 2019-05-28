@@ -3111,6 +3111,11 @@ allocate_fd_with_private (void *private)
     ind->i_gid = current_fsgid();
 
     DEBUG_APPLE;
+    // FINDME: this is where the argo file gets created (called
+    // in top-level argo_accept() in kernel space)
+    // This file should have the argo fops attached to it and
+    // gets installed to the corresponding fd below
+    printk(KERN_ERR "FINDME: creating argo file");
     f = alloc_file_pseudo(ind, argo_mnt, name, FMODE_READ | FMODE_WRITE, &argo_fops_stream);
     if ( !f )
     {
