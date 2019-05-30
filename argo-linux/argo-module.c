@@ -3116,7 +3116,7 @@ allocate_fd_with_private (void *private)
     // This file should have the argo fops attached to it and
     // gets installed to the corresponding fd below
     printk(KERN_ERR "FINDME: creating argo file");
-    f = alloc_file_pseudo(ind, argo_mnt, name, FMODE_READ | FMODE_WRITE, &argo_fops_stream);
+    f = alloc_file_pseudo(ind, argo_mnt, name, O_RDWR, &argo_fops_stream);
     if ( !f )
     {
       //FIXME putback fd?
