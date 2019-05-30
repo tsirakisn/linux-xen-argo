@@ -3126,6 +3126,8 @@ allocate_fd_with_private (void *private)
     f->private_data = private;
     f->f_flags = O_RDWR;
  
+    printk(KERN_ERR "FINDME2: accept returning fd %d", fd);
+
     fd_install (fd, f);
 
     return fd;
