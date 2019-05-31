@@ -357,7 +357,7 @@ struct argo_private;
 /* Ring pointer itself is protected by the refcnt, the lists its in by list_lock.
  * It's permittable to decrement the refcnt whilst holding the read lock,
  * and then clean up refcnt=0 rings later.
- * If a ring has (refcnt != 0) we expect ->ring to be non NULL, and for the ring to 
+ * If a ring has (refcnt != 0) we expect ->ring to be non NULL, and for the ring to
  * be registered with Xen.
  */
 
@@ -1520,7 +1520,7 @@ argo_notify(void)
                     DEBUG_APPLE;
                     if ( d->data[i].flags & XEN_ARGO_RING_SUFFICIENT )
                     {
-    //  printk(KERN_ERR "wanted %d flags %x - doing wakeup and removing from q\n",d->data[i].space_required,d->data[i].flags); 
+    //  printk(KERN_ERR "wanted %d flags %x - doing wakeup and removing from q\n",d->data[i].space_required,d->data[i].flags);
                         wakeup_sponsor (&p->from);
                     }
                     else
@@ -1678,8 +1678,15 @@ connector_interrupt(struct ring *r)
         return ret;
     }
 
+    if ((protocol != ARGO_PROTO_STREAM) || (msg_len < sizeof (sh)))
+    {
+        /*Wrong protocol bin it */
+        (void) argo_copy_out (r->ring, r->len, NULL, NULL, NULL, 0, 1);
+        return ret;
+    }
+
     /* This is a connector: no-one should send SYN, so send RST back */
-    if ( sh.flags & ARGO_SHF_SYN )   
+    if ( sh.flags & ARGO_SHF_SYN )
     {
         msg_len = argo_copy_out(r->ring, r->len, &from, &protocol, &sh,
                                 sizeof(sh), 1);
@@ -2128,7 +2135,7 @@ argo_try_sendv_sponsor(struct argo_private *p,
     return ret;
 }
 
-/* 
+/*
  * Try to send from one of the ring's privates (not its sponsor),
  * and queue an writeq wakeup if we fail
  */
@@ -2494,7 +2501,7 @@ argo_recvfrom_dgram(struct argo_private *p, void *buf, size_t len,
          * For Dgrams, we know the interrupt handler will never use the ring,
          * so leave irqs on
          */
-        spin_lock(&p->r->lock); 
+        spin_lock(&p->r->lock);
 
         if ( p->r->ring->rx_ptr == p->r->ring->tx_ptr )
         {
@@ -2786,7 +2793,7 @@ argo_send_stream(struct argo_private *p, const void *_buf, int len,
         xen_argo_iov_t iovs[2];
         //DEBUG_APPLE;
 
-        to_send = len > write_lump ? write_lump 
+        to_send = len > write_lump ? write_lump
                                    : len;
 
         sh.flags = 0;
@@ -3043,7 +3050,7 @@ argo_connect(struct argo_private *p, xen_argo_addr_t *peer, int nonblock)
 #endif
 
     /* Default 5 seconds (in jiffies). A sysfs interface would be nice though. */
-    mod_timer(&p->to, jiffies + msecs_to_jiffies(5000));          
+    mod_timer(&p->to, jiffies + msecs_to_jiffies(5000));
 
     while (p->state != ARGO_STATE_CONNECTED)
     {
@@ -3160,7 +3167,7 @@ argo_accept(struct argo_private *p, struct xen_argo_addr *peer, int nonblock)
         DEBUG_APPLE;
 
         /*Write lock impliciity has pending_recv_lock */
-        argo_write_lock_irqsave(&list_lock, flags); 
+        argo_write_lock_irqsave(&list_lock, flags);
 
         DEBUG_APPLE;
         if ( !list_empty(&p->pending_recv_list) )
@@ -3416,7 +3423,7 @@ argo_recvfrom(struct argo_private * p, void *buf, size_t len, int flags,
 
     printk(KERN_ERR "argo_recvfrom buff:%p len:%d flags:%d addr_state:%d nonblock:%d\n",
            buf, len, flags, addr_state, nonblock);
- 
+
     if ( !access_ok (VERIFY_WRITE, buf, len) )
         return -EFAULT;
 
@@ -3560,7 +3567,7 @@ argo_release(struct inode *inode, struct file *f)
     {
         switch ( p->state )
         {
-        /* EC: Assuming our process is killed while SYN is waiting in the ring 
+        /* EC: Assuming our process is killed while SYN is waiting in the ring
          *     to be consumed (accept is yet to be scheduled).
          *     Connect will never wake up while the ring is destroy thereafter.
          *     We reply RST to every pending SYN in that situation.
@@ -3697,7 +3704,7 @@ argo_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 
 #ifdef ARGO_DEBUG
     printk (KERN_ERR "argo_ioctl cmd=%x pid=%d\n", cmd, current->pid);
-#endif 
+#endif
     if (_IOC_TYPE (cmd) != ARGO_TYPE)
         return rc;
 
