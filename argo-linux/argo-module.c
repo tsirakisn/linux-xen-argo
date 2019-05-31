@@ -250,8 +250,12 @@ argo_ring_bytes_to_read(volatile struct xen_argo_ring *r, uint32_t ring_size)
 {
     int32_t ret;
     ret = r->tx_ptr - r->rx_ptr;
-    if ( ret >= 0 )
+    if ( ret >= 0 ) {
+        printk(KERN_ERR "FINDME: bytes to read = %d", ret);
         return ret;
+    }
+
+    printk(KERN_ERR "FINDME: bytes to read = %d", ring_size + ret);
     return (uint32_t) (ring_size + ret);
 }
 
