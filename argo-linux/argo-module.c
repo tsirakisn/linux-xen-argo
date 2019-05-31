@@ -343,8 +343,11 @@ argo_copy_out(struct xen_argo_ring *r, uint32_t ring_size,
         memcpy(buf, (void *) &r->ring[rxp], (t < len) ? t : len);
 
     rxp += XEN_ARGO_ROUNDUP(len);
-    if ( rxp == ring_size )
+    printk(KERN_ERR "rxp at %d", rxp);
+    if ( rxp == ring_size ) {
+        printk(KERN_ERR "Wrapping rxp to 0");
         rxp = 0;
+    }
 
     mb();
 
