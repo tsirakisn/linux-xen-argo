@@ -1695,6 +1695,7 @@ connector_interrupt(struct ring *r)
     /* This is a connector: no-one should send SYN, so send RST back */
     if ( sh.flags & ARGO_SHF_SYN )
     {
+        DEBUG_BANANA;
         msg_len = argo_copy_out(r->ring, r->len, &from, &protocol, &sh,
                                 sizeof(sh), 1);
         if ( msg_len == sizeof(sh) )
@@ -1705,6 +1706,7 @@ connector_interrupt(struct ring *r)
     /* Right connexion? */
     if ( sh.conid != r->sponsor->conid )
     {
+        DEBUG_BANANA;
         msg_len = argo_copy_out(r->ring, r->len, &from, &protocol, &sh,
                                 sizeof(sh), 1);
         xmit_queue_rst_to(&r->id, sh.conid, &from);
@@ -1718,8 +1720,10 @@ connector_interrupt(struct ring *r)
                                 sizeof(sh), 1);
         if ( msg_len == sizeof(sh) )
         {
-            if ( connector_state_machine(r->sponsor, &sh) )
+            if ( connector_state_machine(r->sponsor, &sh) ) {
+                DEBUG_BANANA;
                 xmit_queue_rst_to (&r->id, sh.conid, &from);
+            }
         }
         return ret;
     }
@@ -1745,8 +1749,10 @@ acceptor_interrupt (struct argo_private *p, struct ring *r,
         DEBUG_APPLE;
         msg_len = argo_copy_out(r->ring, r->len, &from, NULL, sh,
                                 sizeof(*sh), 1);
-        if ( msg_len == sizeof(*sh) )
+        if ( msg_len == sizeof(*sh) ) {
+            DEBUG_BANANA;
             xmit_queue_rst_to (&r->id, sh->conid, &from);
+        }
         return ret;
     }
 
@@ -1882,6 +1888,7 @@ listener_interrupt(struct ring *r)
 
     (void) argo_copy_out(r->ring, r->len, NULL, NULL, NULL, sizeof(sh), 1);
     /*Data for unknown destination, RST them */
+    DEBUG_BANANA;
     xmit_queue_rst_to(&r->id, sh.conid, &from);
 
     return ret;
@@ -3598,6 +3605,7 @@ argo_release(struct inode *inode, struct file *f)
                         list_del(&pending->node);
                         atomic_dec(&p->r->sponsor->pending_recv_count);
 
+                        DEBUG_BANANA;
                         xmit_queue_rst_to(&p->r->id, pending->sh.conid,
                                           &pending->from);
                         argo_kfree(pending);
@@ -3611,6 +3619,7 @@ argo_release(struct inode *inode, struct file *f)
             case ARGO_STATE_ACCEPTED:
             {
                 DEBUG_APPLE;
+                DEBUG_BANANA;
                 xmit_queue_rst_to (&p->r->id, p->conid, &p->peer);
                 break;
             }
