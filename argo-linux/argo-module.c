@@ -1262,6 +1262,10 @@ xmit_queue_inline(struct argo_ring_id *from, xen_argo_addr_t *to,
     addr.pad = 0;
 
     ret = H_argo_sendv(&addr, to, &iov, 1, protocol);
+    if (ret >= 0) {
+        printk(KERN_ERR "1: Transmitted %d bytes to receiver ring", ret);
+    }
+
     DEBUG_APPLE;
     if (ret != -EAGAIN)
     {
@@ -1504,6 +1508,10 @@ argo_notify(void)
                     addr.domain_id = p->from.domain_id;
                     addr.pad = 0;
                     ret = H_argo_sendv(&addr, &p->to, &iov, 1, p->protocol);
+
+                    if (ret >= 0) {
+                        printk(KERN_ERR "2: Transmitted %d bytes to receiver ring", ret);
+                    }
 
                     if ( ret == -EAGAIN )
                         processed = 0;
@@ -2064,6 +2072,10 @@ argo_try_send_sponsor(struct argo_private *p, xen_argo_addr_t *dest,
     ret = H_argo_sendv(&addr, dest, &iov, 1, protocol);
     DEBUG_APPLE;
 
+    if (ret >= 0) {
+        printk(KERN_ERR "3: Transmitted %d bytes to receiver ring", ret);
+    }
+
     spin_lock_irqsave(&pending_xmit_lock, flags);
     if ( ret == -EAGAIN )
     {
@@ -2107,6 +2119,10 @@ argo_try_sendv_sponsor(struct argo_private *p,
     DEBUG_APPLE;
     ret = H_argo_sendv(&addr, dest, iovs, niov, protocol);
     DEBUG_APPLE;
+
+    if (ret >= 0) {
+        printk(KERN_ERR "4: Transmitted %d bytes to receiver ring", ret);
+    }
 
 #ifdef ARGO_DEBUG
     printk (KERN_ERR "sendv returned %d\n", ret);
@@ -2155,6 +2171,9 @@ argo_try_sendv_privates(struct argo_private *p, xen_argo_addr_t * dest,
     addr.pad = 0;
 
     ret = H_argo_sendv(&addr, dest, iovs, niov, protocol);
+    if (ret >= 0) {
+        printk(KERN_ERR "5: Transmitted %d bytes to receiver ring", ret);
+    }
 
     spin_lock_irqsave(&pending_xmit_lock, flags);
     if ( ret == -EAGAIN )
@@ -2224,6 +2243,9 @@ argo_sendto_from_sponsor(struct argo_private *p,
             addr.pad = 0;
 
             ret = H_argo_sendv(&addr, dest, &iov, 1, protocol);
+            if (ret >= 0) {
+                printk(KERN_ERR "6: Transmitted %d bytes to receiver ring", ret);
+            }
 
             DEBUG_APPLE;
             break;
@@ -2295,6 +2317,10 @@ argo_stream_sendvto_from_sponsor(struct argo_private *p,
             addr.pad = 0;
 
             ret = H_argo_sendv(&addr, dest, iovs, niov, protocol);
+            if (ret >= 0) {
+                printk(KERN_ERR "7: Transmitted %d bytes to receiver ring", ret);
+            }
+
             DEBUG_APPLE;
             break;
         }
@@ -2359,6 +2385,10 @@ argo_stream_sendvto_from_private (struct argo_private *p,
             addr.pad = 0;
 
             ret = H_argo_sendv(&addr, dest, iovs, niov, protocol);
+
+            if (ret >= 0) {
+                printk(KERN_ERR "8: Transmitted %d bytes to receiver ring", ret);
+            }
           break;
         }
 
@@ -2820,6 +2850,7 @@ argo_send_stream(struct argo_private *p, const void *_buf, int len,
         {
             //DEBUG_APPLE;
             /* sponsor */
+            printk(KERN_ERR "1: Attempting to send %d bytes to receiver ring", to_send + sizeof(struct argo_stream_header));
             ret = argo_stream_sendvto_from_sponsor(
                                   p, iovs, 2,
                                   to_send + sizeof(struct argo_stream_header),
@@ -2830,6 +2861,7 @@ argo_send_stream(struct argo_private *p, const void *_buf, int len,
         {
             //DEBUG_APPLE;
             /* private */
+            printk(KERN_ERR "2: Attempting to send %d bytes to receiver ring", to_send + sizeof(struct argo_stream_header));
             ret = argo_stream_sendvto_from_private(
                                    p, iovs, 2,
                                    to_send + sizeof(struct argo_stream_header),
