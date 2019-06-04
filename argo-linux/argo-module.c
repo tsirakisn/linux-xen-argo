@@ -600,6 +600,8 @@ argo_hexdump (volatile void *_b, int len)
 
     int zeros = 0;
 
+    printk(KERN_ERR "argo hexdump:");
+    printk(KERN_ERR "");
     for (i = 0; i < (e + 15); i += 16)
     {
         if ((i + sizeof(zero)) <= e)
@@ -612,39 +614,25 @@ argo_hexdump (volatile void *_b, int len)
         else
             zeros = 0;
 
-        if (zeros == 2)
-            printk (KERN_ERR "*\n");
-
         if (zeros >= 2)
             continue;
 
-
-        printk (KERN_ERR "  %08x:", i);
         for (j = 0; j < 16; ++j)
         {
             int k = i + j;
             if (j == 8)
-                printk (" ");
-            if ((k >= s) && (k < e))
-                printk ("%02x", b[k]);
-            else
-                printk ("  ");
-
+                printk (KERN_CONT " ");
+            if ((k >= s) && (k < e)) {
+                if ((b[k] == 10) || (b[k] == 12) || (b[k] == 13)) {
+                    // newline
+                    printk(KERN_ERR "");
+                } else {
+                    printk (KERN_CONT "%c", ((b[k] > 32) && (b[k] < 127)) ? b[k] : ' ');
+                }
+            } else {
+                printk (KERN_CONT " ");
+            }
         }
-        printk ("  ");
-
-        for (j = 0; j < 16; ++j)
-        {
-            int k = i + j;
-            if (j == 8)
-                printk (" ");
-            if ((k >= s) && (k < e))
-                printk ("%c", ((b[k] > 32) && (b[k] < 127)) ? b[k] : '.');
-            else
-                printk (" ");
-
-        }
-        printk ("\n");
     }
 }
 
@@ -666,7 +654,7 @@ dump_ring (struct ring *r)
 {
   summary_ring (r);
 
-  argo_hexdump (r->ring->ring, r->len);
+  //argo_hexdump (r->ring->ring, r->len);
 }
 
 /****************** hypercall ops *************************************/
@@ -1366,7 +1354,7 @@ copy_into_pending_recv(struct ring *r, int len, struct argo_private *p)
     DEBUG_ORANGE ("inserting into pending");
     printk(KERN_ERR "IP p=%p k=%d s=%d c=%d\n", pending, k, p->state,
            atomic_read (&p->pending_recv_count));
-    /*argo_hexdump (&pending->sh, len);*/
+    argo_hexdump (&pending->sh, len);
     DEBUG_APPLE;
 #endif
 
