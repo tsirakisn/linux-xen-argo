@@ -80,7 +80,7 @@ int argo_map_sxenargo_to_argoa (xen_argo_addr_t *peer, const struct sockaddr *ad
 int argo_map_sa_to_argoa (xen_argo_addr_t *peer, const struct sockaddr *addr,
 		int addrlen);
 
-
+#define DEBUG
 # ifdef DEBUG
 #  define argo_ioctl(a,b,c) ({ int ret=ioctl(a,b,c); fprintf(stderr,"ioctl(%d,%s,%s)=%d\n",a,#b,#c,ret);perror("ioctl"); ret; })
 #  define DEBUG_PRINTF(a...) fprintf(stderr,a);

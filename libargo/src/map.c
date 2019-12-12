@@ -137,8 +137,10 @@ argo_map_sa_to_argoa (xen_argo_addr_t * peer,
   switch (addr->sa_family)
     {
     case AF_XENARGO:
+      DEBUG_PRINTF("SA_FAMILY: XENARGO");
       return argo_map_sxenargo_to_argoa (peer, addr, addrlen);
     case AF_INET:
+      DEBUG_PRINTF("SA_FAMILY: INET");
       return argo_map_sin_to_argoa (peer, addr, addrlen);
     }
   return -EINVAL;
