@@ -76,10 +76,12 @@ argo_map_sin_to_argoa (xen_argo_addr_t * peer, const struct sockaddr *addr,
 
   if (sin->sin_addr.s_addr == INADDR_ANY)
     {
+      DEBUG_PRINTF("s_addr: %d\n", INADDR_ANY);
       peer->domain_id = XEN_ARGO_DOMID_ANY;
     }
   else
     {
+      DEBUG_PRINTF("s_addr: %d\n", sin->sin_addr.s_addr);
       peer->domain_id = ntohl (sin->sin_addr.s_addr) & 0xffff;
     }
 
@@ -137,10 +139,9 @@ argo_map_sa_to_argoa (xen_argo_addr_t * peer,
   switch (addr->sa_family)
     {
     case AF_XENARGO:
-      DEBUG_PRINTF("SA_FAMILY: XENARGO");
       return argo_map_sxenargo_to_argoa (peer, addr, addrlen);
     case AF_INET:
-      DEBUG_PRINTF("SA_FAMILY: INET");
+      DEBUG_PRINTF("SA_FAMILY: INET\n");
       return argo_map_sin_to_argoa (peer, addr, addrlen);
     }
   return -EINVAL;
