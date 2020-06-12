@@ -103,8 +103,8 @@
 
 #define DEFAULT_RING_SIZE     (XEN_ARGO_ROUNDUP((((PAGE_SIZE)*32) - sizeof(xen_argo_ring_t)-XEN_ARGO_ROUNDUP(1))))
 
-/*#define ARGO_DEBUG 1*/
-#undef ARGO_DEBUG
+#define ARGO_DEBUG 1
+//#undef ARGO_DEBUG
 #undef ARGO_DEBUG_LOCKS
 
 #ifdef ARGO_DEBUG
